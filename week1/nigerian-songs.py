@@ -4,17 +4,17 @@ import numpy as np
 from sklearn.preprocessing import (
     StandardScaler, PowerTransformer,
     QuantileTransformer, RobustScaler,
-    MinMaxScaler, Binarizer
-)
+    MinMaxScaler, Binarizer)
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
-from sklearn.metrics import silhouette_score, calinski_harabasz_score
+from sklearn.metrics import  calinski_harabasz_score
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from matplotlib.gridspec import GridSpec
 import pandas as pd
 
-# 1. 解决中文显示问题
+#  预处理部分
+#  解决中文显示问题
 plt.rcParams['font.family'] = ['DejaVu Sans', 'SimHei', 'Microsoft YaHei', 'sans-serif']
 plt.rcParams['axes.unicode_minus'] = False
 plt.rcParams['font.size'] = 12
@@ -22,19 +22,16 @@ plt.rcParams['figure.dpi'] = 100
 plt.rcParams['savefig.dpi'] = 300
 plt.rcParams['figure.figsize'] = (10, 6)
 
-
-
-
-# 2. 加载数据
+#  加载数据
 print("=== 加载数据 ===")
 df = pd.read_csv("nigerian-songs.csv")
 print(f"数据集包含 {df.shape[0]} 首歌曲, {df.shape[1]} 个特征")
 
-# 3. 检查缺失值
+#  检查缺失值
 print("\n每列缺失值统计：")
 print(df.isnull().sum())
 
-# 设置显示选项 - 确保完整输出
+# 设置显示选项，确保完整输出
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', None)
 pd.set_option('display.width', None)
@@ -44,13 +41,11 @@ pd.set_option('display.max_colwidth', None)
 print("\n所有列的完整统计摘要（无折叠）：")
 print(df.describe(include='all'))
 
-
-
-# 6. 查看唯一值数量
+#  查看唯一值数量
 print("\n每列唯一值数量：")
 print(df.nunique())
 
-# 3. 选择音频特征列
+#  选择音频特征列
 audio_features = ['danceability', 'energy', 'loudness', 'speechiness',
                   'acousticness', 'instrumentalness', 'liveness', 'tempo']
 
@@ -172,7 +167,7 @@ def plot_post_processing(transformed_data):
 plot_post_processing(transformed_features)
 
 # ======================================
-# 肘部法则分析 - 确定最佳聚类数
+# 肘部法则分析来确定最佳聚类数
 # ======================================
 
 print("\n=== 使用肘部法则确定最佳聚类数 ===")
@@ -441,8 +436,8 @@ print(cluster_analysis)
 
 print("\n=== 分析结果总结 ===")
 print(f"1. 最佳聚类数: K = {best_k}")
-print(f"2. 轮廓系数: {best_sil_score:.3f} (值在-1到1之间，越接近1表示聚类效果越好)")
-print(f"3. Calinski-Harabasz指数: {best_ch_score:.3f} (值越高表示聚类效果越好)")
+print(f"2. 轮廓系数: {best_sil_score:.3f} ")
+print(f"3. Calinski-Harabasz指数: {best_ch_score:.3f} ")
 
 print("\n4. 聚类大小分布:")
 cluster_counts = df.assign(cluster=best_labels)['cluster'].value_counts().sort_index()
