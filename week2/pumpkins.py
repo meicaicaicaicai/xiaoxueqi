@@ -221,110 +221,80 @@ for name, model in models.items():
         results[name] = {'error': str(e)}
 
 # 10. 模型比较与可视化
-if results:
-    metrics_data = []
-    for name, data in results.items():
-        if 'test_r2' in data:
-            metrics_data.append({
-                'Model': name,
-                'MAE': data['test_mae'],
-                'RMSE': data['test_rmse'],
-                'R2': data['test_r2']
-            })
 
-    metrics_df = pd.DataFrame(metrics_data)
+# 11. 最佳模型分析
+best_model_name = max(results, key=lambda x: results[x]['test_r2'])
+best_model = results[best_model_name]['model']
+print(f"\n最佳模型: {best_model_name} (R²={results[best_model_name]['test_r2']:.4f})")
 
-    plt.figure(figsize=(15, 5))
+# 特征重要性可视化
+if hasattr(best_model, 'feature_importances_'):
+    importances = best_model.feature_importances_
+    feature_importance = pd.DataFrame({
+        'Feature': features,
+        'Importance': importances
+    }).sort_values('Importance', ascending=False)
 
-    plt.subplot(1, 3, 1)
-    sns.barplot(x='R2', y='Model', data=metrics_df.sort_values('R2', ascending=False))
-    plt.title('模型R²比较')
-    plt.xlim(0, 1)
-
-    plt.subplot(1, 3, 2)
-    sns.barplot(x='RMSE', y='Model', data=metrics_df.sort_values('RMSE'))
-    plt.title('模型RMSE比较')
-
-    plt.subplot(1, 3, 3)
-    sns.barplot(x='MAE', y='Model', data=metrics_df.sort_values('MAE'))
-    plt.title('模型MAE比较')
-
+    plt.figure(figsize=(12, 8))
+    sns.barplot(x='Importance', y='Feature', data=feature_importance)
+    plt.title(f'{best_model_name} 特征重要性')
     plt.tight_layout()
     plt.show()
 
-    # 11. 最佳模型分析
-    best_model_name = max(results, key=lambda x: results[x]['test_r2'])
-    best_model = results[best_model_name]['model']
-    print(f"\n最佳模型: {best_model_name} (R²={results[best_model_name]['test_r2']:.4f})")
+# 12. 残差分析
+test_pred = results[best_model_name]['test_pred']
+residuals = y_test - test_pred
 
-    # 特征重要性可视化
-    if hasattr(best_model, 'feature_importances_'):
-        importances = best_model.feature_importances_
-        feature_importance = pd.DataFrame({
-            'Feature': features,
-            'Importance': importances
-        }).sort_values('Importance', ascending=False)
+# 残差分布
+plt.figure(figsize=(12, 6))
+plt.subplot(1, 2, 1)
+sns.histplot(residuals, bins=50, kde=True)
+plt.title('残差分布')
+plt.xlabel('残差')
 
-        plt.figure(figsize=(12, 8))
-        sns.barplot(x='Importance', y='Feature', data=feature_importance)
-        plt.title(f'{best_model_name} 特征重要性')
-        plt.tight_layout()
-        plt.show()
+# 残差vs预测值
+plt.subplot(1, 2, 2)
+sns.scatterplot(x=test_pred, y=residuals, alpha=0.5)
+plt.axhline(y=0, color='r', linestyle='--')
+plt.title('残差 vs 预测值')
+plt.xlabel('预测价格')
+plt.ylabel('残差')
 
-    # 12. 残差分析
-    test_pred = results[best_model_name]['test_pred']
-    residuals = y_test - test_pred
+plt.tight_layout()
+plt.show()
 
-    # 残差分布
-    plt.figure(figsize=(12, 6))
-    plt.subplot(1, 2, 1)
-    sns.histplot(residuals, bins=50, kde=True)
-    plt.title('残差分布')
-    plt.xlabel('残差')
+# 13. 时间维度误差分析
+test_df = test.copy()
+test_df['Predicted'] = test_pred
+test_df['Residual'] = residuals
+test_df['Absolute_Error'] = np.abs(residuals)
 
-    # 残差vs预测值
-    plt.subplot(1, 2, 2)
-    sns.scatterplot(x=test_pred, y=residuals, alpha=0.5)
-    plt.axhline(y=0, color='r', linestyle='--')
-    plt.title('残差 vs 预测值')
-    plt.xlabel('预测价格')
-    plt.ylabel('残差')
+# 按月误差分析
+monthly_error = test_df.groupby('Month')['Absolute_Error'].mean().reset_index()
 
-    plt.tight_layout()
-    plt.show()
+plt.figure(figsize=(10, 6))
+sns.lineplot(x='Month', y='Absolute_Error', data=monthly_error, marker='o')
+plt.title('月均预测误差分析')
+plt.xticks(range(1, 13))
+plt.xlabel('月份')
+plt.ylabel('平均绝对误差(MAE)')
+plt.grid(True)
+plt.show()
 
-    # 13. 时间维度误差分析
-    test_df = test.copy()
-    test_df['Predicted'] = test_pred
-    test_df['Residual'] = residuals
-    test_df['Absolute_Error'] = np.abs(residuals)
-
-    # 按月误差分析
-    monthly_error = test_df.groupby('Month')['Absolute_Error'].mean().reset_index()
-
-    plt.figure(figsize=(10, 6))
-    sns.lineplot(x='Month', y='Absolute_Error', data=monthly_error, marker='o')
-    plt.title('月均预测误差分析')
-    plt.xticks(range(1, 13))
-    plt.xlabel('月份')
-    plt.ylabel('平均绝对误差(MAE)')
-    plt.grid(True)
-    plt.show()
-
-    # 14. 实际vs预测时间序列
-    test_df = test_df.sort_values('Date')
-    plt.figure(figsize=(14, 7))
-    plt.plot(test_df['Date'], test_df['Avg_Price'], label='实际价格', linewidth=2)
-    plt.plot(test_df['Date'], test_df['Predicted'], label='预测价格', linestyle='--')
-    plt.fill_between(test_df['Date'],
-                     test_df['Predicted'] - 30,
-                     test_df['Predicted'] + 30,
-                     alpha=0.2, color='orange')
-    plt.title('实际价格 vs 预测价格 (2017年)')
-    plt.xlabel('日期')
-    plt.ylabel('价格')
-    plt.legend()
-    plt.grid(True)
-    plt.show()
+# 14. 实际vs预测时间序列
+test_df = test_df.sort_values('Date')
+plt.figure(figsize=(14, 7))
+plt.plot(test_df['Date'], test_df['Avg_Price'], label='实际价格', linewidth=2)
+plt.plot(test_df['Date'], test_df['Predicted'], label='预测价格', linestyle='--')
+plt.fill_between(test_df['Date'],
+                 test_df['Predicted'] - 30,
+                 test_df['Predicted'] + 30,
+                 alpha=0.2, color='orange')
+plt.title('实际价格 vs 预测价格 (2017年)')
+plt.xlabel('日期')
+plt.ylabel('价格')
+plt.legend()
+plt.grid(True)
+plt.show()
 
 print("\n南瓜价格预测建模完成！")
