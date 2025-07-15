@@ -1,0 +1,30 @@
+{
+    "GradientBoosting": {
+        "params": {
+            "learning_rate": 0.1,
+            "max_depth": 3,
+            "min_samples_split": 5,
+            "n_estimators": 200
+        },
+        "metrics": {
+            "train_rmse": 3.8918442925753283,
+            "test_rmse": 30.047008622473445,
+            "test_mae": 15.67501484677378,
+            "test_r2": 0.8952252335423785
+        }
+    },
+    "XGBoost": {
+        "params": {
+            "learning_rate": 0.1,
+            "max_depth": 3,
+            "n_estimators": 200,
+            "subsample": 0.8
+        },
+        "metrics": {
+            "train_rmse": 4.464630307976258,
+            "test_rmse": 29.100941939448067,
+            "test_mae": 15.23252318823256,
+            "test_r2": 0.9017192841382903
+        }
+    }
+}
