@@ -26,5 +26,19 @@
             "test_mae": 15.23252318823256,
             "test_r2": 0.9017192841382903
         }
+    },
+    "LightGBM": {
+        "params": {
+            "learning_rate": 0.1,
+            "max_depth": 3,
+            "n_estimators": 200,
+            "subsample": 0.8
+        },
+        "metrics": {
+            "train_rmse": 7.831252751075749,
+            "test_rmse": 28.389951945780865,
+            "test_mae": 14.89926608924508,
+            "test_r2": 0.9064629792492331
+        }
     }
 }
