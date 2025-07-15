@@ -5,66 +5,92 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from utility import log, save_csv, save_json
 
-def metrics(y_true, y_pred):
-    rmse = np.sqrt(mean_squared_error(y_true, y_pred))
-    mae  = mean_absolute_error(y_true, y_pred)
-    r2   = r2_score(y_true, y_pred)
-    return {'RMSE': rmse, 'MAE': mae, 'R2': r2}
 
-def evaluate_model(name, model, X_train, y_train, X_test, y_test, features, test_df):
-    """对单个模型评估并画图"""
-    log(f'Evaluating {name} ...')
+def evaluate_model(model, X_train, y_train, X_test, y_test):
+    # 预测
     train_pred = model.predict(X_train)
-    test_pred  = model.predict(X_test)
+    test_pred = model.predict(X_test)
 
-    res = {
-        'train': metrics(y_train, train_pred),
-        'test' : metrics(y_test,  test_pred),
-        'pred' : test_pred
+    # 计算指标
+    train_rmse = np.sqrt(mean_squared_error(y_train, train_pred))
+    test_rmse = np.sqrt(mean_squared_error(y_test, test_pred))
+    test_mae = mean_absolute_error(y_test, test_pred)
+    test_r2 = r2_score(y_test, test_pred)
+
+    return {
+        'train_pred': train_pred,
+        'test_pred': test_pred,
+        'train_rmse': train_rmse,
+        'test_rmse': test_rmse,
+        'test_mae': test_mae,
+        'test_r2': test_r2
     }
 
+
+def visualize_results(model, results, test_df, features):
     # 特征重要性
     if hasattr(model, 'feature_importances_'):
-        fi = pd.DataFrame({'Feature': features, 'Importance': model.feature_importances_}) \
-               .sort_values('Importance', ascending=False)
-        plt.figure(figsize=(10,6))
-        sns.barplot(x='Importance', y='Feature', data=fi)
-        plt.title(f'{name} Feature Importance')
+        importances = model.feature_importances_
+        feature_importance = pd.DataFrame({
+            'Feature': features,
+            'Importance': importances
+        }).sort_values('Importance', ascending=False)
+
+        plt.figure(figsize=(12, 8))
+        sns.barplot(x='Importance', y='Feature', data=feature_importance)
+        plt.title(f'{type(model).__name__} 特征重要性')
         plt.tight_layout()
-        plt.savefig(f'output/{name}_feature_importance.png')
-        plt.close()
+        plt.show()
 
-    # 残差
-    residuals = y_test - test_pred
-    plt.figure(figsize=(12,5))
-    plt.subplot(1,2,1)
+    # 残差分析
+    test_pred = results['test_pred']
+    residuals = test_df['Avg_Price'] - test_pred
+
+    plt.figure(figsize=(12, 6))
+    plt.subplot(1, 2, 1)
     sns.histplot(residuals, bins=50, kde=True)
-    plt.title('Residual Distribution')
+    plt.title('残差分布')
+    plt.xlabel('残差')
 
-    plt.subplot(1,2,2)
+    plt.subplot(1, 2, 2)
     sns.scatterplot(x=test_pred, y=residuals, alpha=0.5)
-    plt.axhline(0, ls='--', c='r')
-    plt.title('Residual vs Predicted')
+    plt.axhline(y=0, color='r', linestyle='--')
+    plt.title('残差 vs 预测值')
+    plt.xlabel('预测价格')
+    plt.ylabel('残差')
     plt.tight_layout()
-    plt.savefig(f'output/{name}_residual.png')
-    plt.close()
+    plt.show()
 
-    # 时间序列
-    test_df = test_df.assign(Predicted=test_pred, Residual=residuals).sort_values('Date')
-    plt.figure(figsize=(14,6))
-    plt.plot(test_df['Date'], test_df['Avg_Price'], label='Actual')
-    plt.plot(test_df['Date'], test_df['Predicted'], label='Predicted', ls='--')
+    # 时间维度误差分析
+    test_df = test_df.copy()
+    test_df['Predicted'] = test_pred
+    test_df['Residual'] = residuals
+    test_df['Absolute_Error'] = np.abs(residuals)
+
+    monthly_error = test_df.groupby('Month')['Absolute_Error'].mean().reset_index()
+
+    plt.figure(figsize=(10, 6))
+    sns.lineplot(x='Month', y='Absolute_Error', data=monthly_error, marker='o')
+    plt.title('月均预测误差分析')
+    plt.xticks(range(1, 13))
+    plt.xlabel('月份')
+    plt.ylabel('平均绝对误差(MAE)')
+    plt.grid(True)
+    plt.show()
+
+    # 实际vs预测时间序列
+    test_df = test_df.sort_values('Date')
+    plt.figure(figsize=(14, 7))
+    plt.plot(test_df['Date'], test_df['Avg_Price'], label='实际价格', linewidth=2)
+    plt.plot(test_df['Date'], test_df['Predicted'], label='预测价格', linestyle='--')
     plt.fill_between(test_df['Date'],
-                     test_df['Predicted']-30,
-                     test_df['Predicted']+30,
+                     test_df['Predicted'] - 30,
+                     test_df['Predicted'] + 30,
                      alpha=0.2, color='orange')
-    plt.title(f'{name}: Actual vs Predicted (2017)')
-    plt.legend(); plt.grid(True)
-    plt.savefig(f'output/{name}_series.png')
-    plt.close()
-
-    save_json(res, f'{name}_metrics')
-    save_csv(test_df[['Date','Avg_Price','Predicted','Residual']], f'{name}_pred.csv')
-    return res
+    plt.title('实际价格 vs 预测价格 (2017年)')
+    plt.xlabel('日期')
+    plt.ylabel('价格')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
