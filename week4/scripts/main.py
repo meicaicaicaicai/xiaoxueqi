@@ -19,17 +19,18 @@ def main():
     # 特征缩放
     X_train_scaled, X_test_scaled, _ = scale_features(X_train, X_test)
 
-    # 训练和评估模型
+    # 训练和评估
     all_results = {}
     models = {}
 
     for model_name in conf.keys():
         print(f"\n训练 {model_name} 模型...")
+        from model import train_model_optuna
+        best_model, best_params = train_model_optuna(
+            model_name, X_train_scaled, y_train, n_trials=40
+        )
+        print(f"{model_name} Optuna 最佳参数：{best_params}")
 
-        # 训练模型
-        grid_search = train_model(model_name, X_train_scaled, y_train)
-        best_model = grid_search.best_estimator_
-        print(f"{model_name} 最佳参数: {grid_search.best_params_}")
 
         # 评估模型
         model_results = evaluate_model(best_model, X_train_scaled, y_train, X_test_scaled, y_test)
@@ -38,7 +39,7 @@ def main():
         log_model_performance(model_name, model_results)
         models[model_name] = best_model
         all_results[model_name] = {
-            'params': grid_search.best_params_,
+            'params': best_params.best_params_,
             'metrics': {
                 'train_rmse': model_results['train_rmse'],
                 'test_rmse': model_results['test_rmse'],
