@@ -6,6 +6,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
+plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'KaiTi', 'Arial Unicode MS']
+plt.rcParams['axes.unicode_minus'] = False
+plt.rcParams['font.size'] = 10
+sns.set_theme(font="SimHei")  # 设置seaborn全局字体
+
 
 def evaluate_model(model, X_train, y_train, X_test, y_test):
     # 预测
@@ -94,3 +99,24 @@ def visualize_results(model, results, test_df, features):
     plt.legend()
     plt.grid(True)
     plt.show()
+
+if __name__ == '__main__':
+    import joblib
+    import os
+    from data_analysis import load_and_clean_data, prepare_features
+    from feature_processing import scale_features
+
+    # 加载模型
+    model = joblib.load('../output/lightgbm_best.pkl')
+
+    # 数据准备
+    file_path = os.path.abspath(r'D:\Python\pycharm\xiaoxueqi\week4\data\US-pumpkins.csv')
+    df = load_and_clean_data(file_path)
+    X_train, X_test, y_train, y_test = prepare_features(df)
+    X_train_scaled, X_test_scaled, _ = scale_features(X_train, X_test)
+    test_df = df[df['Year'] == 2017].copy()
+
+    # 评估
+    from evaluate import evaluate_model, visualize_results
+    results = evaluate_model(model, X_train_scaled, y_train, X_test_scaled, y_test)
+    visualize_results(model, results, test_df, X_train.columns.tolist())

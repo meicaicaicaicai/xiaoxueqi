@@ -106,3 +106,15 @@ def prepare_features(df):
     y_test = test['Avg_Price']
 
     return X_train, X_test, y_train, y_test
+
+if __name__ == '__main__':
+    import os
+    # 绝对路径或相对路径均可
+    file_path = os.path.abspath(r'D:\Python\pycharm\xiaoxueqi\week4\data\US-pumpkins.csv')
+    df = load_and_clean_data(file_path)
+    print("清洗后形状:", df.shape)
+    print(df.head())
+    print("缺失值统计:\n", df.isnull().sum())
+    # 保存中间结果便于验证
+    os.makedirs('../output', exist_ok=True)
+    df.to_csv('../output/cleaned.csv', index=False)
