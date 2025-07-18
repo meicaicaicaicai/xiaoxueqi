@@ -7,7 +7,7 @@ from xgboost import XGBRegressor
 from sklearn.model_selection import TimeSeriesSplit
 from lightgbm import LGBMRegressor
 
-# conf={}这是个大字典，键是模型名字符串，值是二级字典，含 3 个固定键
+# conf={}这是个大字典，键是模型名字符串，值是二级字典，含2个固定键
 conf = {
     # "GradientBoosting"这个是键
     "GradientBoosting": {
