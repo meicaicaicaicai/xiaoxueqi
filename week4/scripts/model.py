@@ -2,13 +2,6 @@
 
 
 
-
-
-
-
-
-
-
 # model_optuna.py
 import optuna
 from sklearn.metrics import mean_squared_error

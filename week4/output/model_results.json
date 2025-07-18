@@ -1,44 +1,44 @@
 {
     "GradientBoosting": {
         "params": {
-            "learning_rate": 0.1,
+            "n_estimators": 594,
+            "learning_rate": 0.0200038412959924,
             "max_depth": 3,
-            "min_samples_split": 5,
-            "n_estimators": 200
+            "subsample": 0.8705334728543007
         },
         "metrics": {
-            "train_rmse": 3.8918442925753283,
-            "test_rmse": 30.047008622473445,
-            "test_mae": 15.67501484677378,
-            "test_r2": 0.8952252335423785
+            "train_rmse": 5.748530818175018,
+            "test_rmse": 33.36694481758142,
+            "test_mae": 18.15206152811024,
+            "test_r2": 0.8707926841809065
         }
     },
     "XGBoost": {
         "params": {
-            "learning_rate": 0.1,
+            "n_estimators": 872,
+            "learning_rate": 0.07325314690129955,
             "max_depth": 3,
-            "n_estimators": 200,
-            "subsample": 0.8
+            "subsample": 0.6916129339783204
         },
         "metrics": {
-            "train_rmse": 4.464630307976258,
-            "test_rmse": 29.100941939448067,
-            "test_mae": 15.23252318823256,
-            "test_r2": 0.9017192841382903
+            "train_rmse": 1.638674914539266,
+            "test_rmse": 27.564311448242115,
+            "test_mae": 14.076163194174104,
+            "test_r2": 0.9118243814464748
         }
     },
     "LightGBM": {
         "params": {
-            "learning_rate": 0.1,
+            "n_estimators": 683,
+            "learning_rate": 0.12607870740064206,
             "max_depth": 3,
-            "n_estimators": 200,
-            "subsample": 0.8
+            "subsample": 0.9459576015169852
         },
         "metrics": {
-            "train_rmse": 7.831252751075749,
-            "test_rmse": 28.389951945780865,
-            "test_mae": 14.89926608924508,
-            "test_r2": 0.9064629792492331
+            "train_rmse": 3.287604364020147,
+            "test_rmse": 25.778930072275365,
+            "test_mae": 13.175394807851372,
+            "test_r2": 0.9228769857342645
         }
     }
 }

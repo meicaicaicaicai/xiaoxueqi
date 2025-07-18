@@ -1,7 +1,7 @@
 import os
 from data_analysis import load_and_clean_data, prepare_features
 from feature_processing import scale_features
-from model import train_model
+from model import train_model_optuna
 from evaluate import evaluate_model, visualize_results
 from utility import setup_visualization, log_model_performance, save_results
 from configuration import conf
@@ -39,7 +39,7 @@ def main():
         log_model_performance(model_name, model_results)
         models[model_name] = best_model
         all_results[model_name] = {
-            'params': best_params.best_params_,
+            'params': best_params,
             'metrics': {
                 'train_rmse': model_results['train_rmse'],
                 'test_rmse': model_results['test_rmse'],
